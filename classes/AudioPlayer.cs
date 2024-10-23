@@ -25,7 +25,7 @@ public class AudioPlayer
                     VisualizeWaveform(buffer, samplesRead);
                 }
                 // limit the virtualization rate
-                Thread.Sleep(50);
+                Thread.Sleep(1000);
             }
         }
     }
@@ -34,18 +34,35 @@ public class AudioPlayer
     {
         // find max amplitude and visualize it
         float maxAmplitude = 0;
+        float minAmplitude = 0;
 
         for (int i = 0; i < samplesRead; i++)
         {
-            maxAmplitude = Math.Max(maxAmplitude, Math.Abs(buffer[i]));
+            float sample = buffer[i];
+
+            if (sample > maxAmplitude)
+            {
+                maxAmplitude = sample;
+            }
+            if (sample < minAmplitude)
+            {
+                minAmplitude = sample;
+            }
         }
+
+        int maxBarWidth = (int)(maxAmplitude * 80);
+        int minBarWidth = (int)(Math.Abs(minAmplitude) * 80);
 
         // convert amplitude to a size that can be displayed in the terminal
         int visualizeWidth = (int)(maxAmplitude * 50); // scale to width between 0 and 50
 
         // draw the amplitude as a line
         Console.Clear();
-        Console.Write($"Amplitude: {maxAmplitude.ToString("F2")}");
-        Console.WriteLine(new string("#"), visualizeWidth);
+        Console.WriteLine("Max amplitude: " + maxAmplitude.ToString("F2"));
+        Console.WriteLine("Min amplitude: " + minAmplitude.ToString("F2"));
+        // positive wave
+        Console.WriteLine(new string('#', maxBarWidth));
+        // negative wave
+        Console.WriteLine(new string('-', minBarWidth));
     }
 }
