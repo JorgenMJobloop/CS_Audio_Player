@@ -1,68 +1,55 @@
-using NAudio.Wave;
+using System;
+using System.Diagnostics;
+using System.Threading;
 
 
 public class AudioPlayer
 {
     public void PlayAndVisualizeAudio(string filePath)
     {
-        using (var audioFile = new AudioFileReader(filePath))
-        using (var outputDevice = new WaveOutEvent())
+        var ffmpegProcess = new Process
         {
-            outputDevice.Init(audioFile);
-            outputDevice.Play();
-
-            // buffer that reads the amplitudes
-            float[] buffer = new float[1024];
-            int samplesRead;
-
-            while (outputDevice.PlaybackState == PlaybackState.Playing)
+            StartInfo = new ProcessStartInfo
             {
-                // reads the amplitude from the audiofile
-                samplesRead = audioFile.Read(buffer, 0, buffer.Length);
-
-                if (samplesRead > 0)
-                {
-                    VisualizeWaveform(buffer, samplesRead);
-                }
-                // limit the virtualization rate
-                Thread.Sleep(1000);
+                FileName = "ffplay", // use ffmpeg to play the audio files
+                Arguments = $"-autoexit -nodisp \"{filePath}\"",
+                RedirectStandardOutput = false,
+                UseShellExecute = false,
+                CreateNoWindow = true
             }
-        }
+        };
+
+        ffmpegProcess.Start();
+
+        VisualizeWaveform(filePath);
+
+        ffmpegProcess.WaitForExit();
     }
 
-    public void VisualizeWaveform(float[] buffer, int samplesRead)
+
+    private void VisualizeWaveform(string filePath)
     {
-        // find max amplitude and visualize it
-        float maxAmplitude = 0;
-        float minAmplitude = 0;
+        float maxAmplitude = 0.0f;
+        float minAmplitude = 0.0f;
 
-        for (int i = 0; i < samplesRead; i++)
+        for (int i = 0; i < 100; i++) // Run 100 visualizations as a simulation
         {
-            float sample = buffer[i];
+            // generate random amplitude
+            maxAmplitude = (float)(new Random().NextDouble());
+            minAmplitude = (float)(-new Random().NextDouble());
 
-            if (sample > maxAmplitude)
-            {
-                maxAmplitude = sample;
-            }
-            if (sample < minAmplitude)
-            {
-                minAmplitude = sample;
-            }
+            Console.Clear();
+            Console.WriteLine("Max amplitude: " + maxAmplitude.ToString("F2"));
+            Console.WriteLine("Min amplitude: " + minAmplitude.ToString("F2"));
+
+            // Visualize amplitude
+            int maxBarWidth = (int)(maxAmplitude * 50);
+            int minBarWidth = (int)(Math.Abs(minAmplitude) * 50);
+
+            Console.WriteLine(new string('#', maxBarWidth));
+            Console.WriteLine(new string('-', minBarWidth));
+            // pause between visualisation
+            Thread.Sleep(100);
         }
-
-        int maxBarWidth = (int)(maxAmplitude * 80);
-        int minBarWidth = (int)(Math.Abs(minAmplitude) * 80);
-
-        // convert amplitude to a size that can be displayed in the terminal
-        int visualizeWidth = (int)(maxAmplitude * 50); // scale to width between 0 and 50
-
-        // draw the amplitude as a line
-        Console.Clear();
-        Console.WriteLine("Max amplitude: " + maxAmplitude.ToString("F2"));
-        Console.WriteLine("Min amplitude: " + minAmplitude.ToString("F2"));
-        // positive wave
-        Console.WriteLine(new string('#', maxBarWidth));
-        // negative wave
-        Console.WriteLine(new string('-', minBarWidth));
     }
 }
