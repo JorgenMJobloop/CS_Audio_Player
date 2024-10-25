@@ -39,6 +39,7 @@ public class AudioPlayer
             minAmplitude = (float)(-new Random().NextDouble());
 
             Console.Clear();
+            Console.WriteLine($"Currently playing: {filePath.ToString()}");
             Console.WriteLine("Max amplitude: " + maxAmplitude.ToString("F2"));
             Console.WriteLine("Min amplitude: " + minAmplitude.ToString("F2"));
 
