@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ public class AudioPlayer
     private bool isPaused = false;
     private bool isPlaying = false;
     private bool stopRequested = false;
-    private Task visualizationTask;
+    private Task? visualizationTask;
 
     public void PlayAudio(string filePath)
     {
@@ -84,7 +85,26 @@ public class AudioPlayer
     private void VisualizeWaveForm(string filePath)
     {
         Random random = new Random();
-        //Console.CancelKeyPress();
+        Console.CancelKeyPress += (sender, e) => { stopRequested = true; };
+        while (!stopRequested)
+        {
+            Console.Clear();
+            Console.WriteLine($"Currently playing: {filePath}");
+
+            float maxAmplitude = (float)random.NextDouble();
+            float minAmplitude = (float)(-random.NextDouble());
+
+            Console.WriteLine("Max amplitude " + maxAmplitude.ToString("F2"));
+            Console.WriteLine("Min amplitude " + minAmplitude.ToString("F2"));
+
+            int maxBarWidth = (int)(maxAmplitude * 50);
+            int minBarWidth = (int)Math.Abs(minAmplitude * 50);
+
+            Console.WriteLine(new string("#" + maxBarWidth));
+            Console.WriteLine(new string("-" + minBarWidth));
+
+            Thread.Sleep(100);
+        }
     }
 
     // Code below discarded!
